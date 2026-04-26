@@ -4,6 +4,8 @@ from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_ollama import OllamaLLM
+from utils.security.F_prompt_injection import injection_node
+from utils.security.F_anonymizer import anonymize_node
 from langgraph.graph import END, StateGraph
 
 
@@ -12,6 +14,7 @@ class GraphState(TypedDict):
 	context: str
 	answer: str
 	source: str
+	is_safe: str
 
 
 class Decision_Graph_Agent:
@@ -95,15 +98,48 @@ class Decision_Graph_Agent:
 		else:
 			return "generate"
 
+	def security_node(self, state: GraphState) -> GraphState:
+		q = state["question"]
+		is_safe = injection_node(self.llm, q)
+		state["is_safe"] = is_safe
+		if is_safe == "no":
+			state["answer"] = "Security Alert: Malicious prompt detected."
+		return state
+
+	def anonymize_query_node(self, state: GraphState) -> GraphState:
+		q = state["question"]
+		safe_query = anonymize_node(q)
+		state["question"] = safe_query
+		return state
+
+	def route_after_security(self, state: GraphState) -> str:
+		if state.get("is_safe") == "no":
+			return "end"
+		else:
+			return "anonymize"
+
 	def _build_graph(self):
 		g = StateGraph(GraphState)
 
+		g.add_node("security", self.security_node)
+		g.add_node("anonymize", self.anonymize_query_node)
 		g.add_node("retrieve", self.retrieve_node)
 		g.add_node("grade", self.grade_node)
 		g.add_node("web_search", self.web_search_node)
 		g.add_node("generate", self.generate_node)
 
-		g.set_entry_point("retrieve")
+		g.set_entry_point("security")
+
+		g.add_conditional_edges(
+			"security",
+			self.route_after_security,
+			{
+				"end": END,
+				"anonymize": "anonymize",
+			},
+		)
+
+		g.add_edge("anonymize", "retrieve")
 		g.add_edge("retrieve", "grade")
 
 		g.add_conditional_edges(
@@ -121,6 +157,6 @@ class Decision_Graph_Agent:
 		return g.compile()
 
 	def run(self, query: str):
-		inputs = {"question": query, "context": "", "answer": "", "source": ""}
+		inputs = {"question": query, "context": "", "answer": "", "source": "", "is_safe": ""}
 		final_state = self.app.invoke(inputs)
 		return final_state["answer"]

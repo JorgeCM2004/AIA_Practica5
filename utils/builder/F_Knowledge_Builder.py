@@ -4,6 +4,7 @@ import chromadb
 import pandas as pd
 from chromadb.utils import embedding_functions
 from tqdm import tqdm
+from utils.security.F_Encrypter import Encrypter
 
 
 class Knowledge_Builder:
@@ -17,6 +18,8 @@ class Knowledge_Builder:
 		self.embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
 			model_name="all-MiniLM-L6-v2"
 		)
+
+		self.encrypter = Encrypter()
 
 		self.collection = self.client.get_or_create_collection(
 			name="maternal_health_knowledge", embedding_function=self.embedding_fn
@@ -63,8 +66,14 @@ class Knowledge_Builder:
 		):
 			end_idx = min(i + batch_size, len(documents))
 
+			batch_docs = documents[i:end_idx]
+			
+			embeddings = self.embedding_fn(batch_docs)
+			encrypted_docs = [self.encrypter.encrypt(doc) for doc in batch_docs]
+
 			self.collection.add(
-				documents=documents[i:end_idx],
+				documents=encrypted_docs,
+				embeddings=embeddings,
 				metadatas=metadatas[i:end_idx],
 				ids=ids[i:end_idx],
 			)
