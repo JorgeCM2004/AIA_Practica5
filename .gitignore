@@ -17,3 +17,6 @@ images/
 
 #Memoria
 memoria/
+
+#Testing
+.pytest_cache/
