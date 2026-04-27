@@ -3,9 +3,10 @@ from typing import TypedDict
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_ollama import OllamaLLM
-from utils.security.F_prompt_injection import injection_node
-from utils.security.F_anonymizer import anonymize_node
 from langgraph.graph import END, StateGraph
+
+from utils.security.F_anonymizer import anonymize_node
+from utils.security.F_prompt_injection import injection_node
 
 
 class GraphState(TypedDict):
