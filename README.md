@@ -1,6 +1,6 @@
-# Chatbot basado en RAG para consultas de Embarazadas.
+# Securización del chatbot basado en RAG para consultas de Embarazadas.
 
-Este proyecto utiliza el motor de Búsqueda Híbrida de la **[Práctica 2](https://github.com/JorgeCM2004/AIA_Practica2)** y extiende su funcionamiento con el uso de LLMs locales para la creación de un chatbot.
+Este proyecto usa como base el chatbot creado en la **[Práctica 4](https://github.com/JorgeCM2004/AIA_Practica4)** y extiende su funcionamiento con el uso de técnicas de anonimización de información sensible, securización contra "prompt injection" y encriptación de la base de datos vectorial creada en la **[Práctica 2](https://github.com/JorgeCM2004/AIA_Practica2)**.
 
 Destaca por su diseño modular orientado a objetos y el uso de **[uv](https://github.com/astral-sh/uv)** para una gestión del entorno y dependencias ultrarrápida y reproducible.
 
@@ -8,6 +8,9 @@ Destaca por su diseño modular orientado a objetos y el uso de **[uv](https://gi
 
 El código está organizado en distintos módulos para facilitar su lectura y mantenimiento:
 ```
+├── 📁 test
+│   ├── 🐍 anonymization_test.py
+│   └── 🐍 security_test.py
 ├── 📁 utils
 │   ├── 📁 agent
 │   │   ├── 🐍 F_Decision_Graph_Agent.py
@@ -22,9 +25,15 @@ El código está organizado en distintos módulos para facilitar su lectura y ma
 │   │   ├── 🐍 F_Hybrid_Searcher.py
 │   │   ├── 🐍 F_Lexical_Searcher.py
 │   │   └── 🐍 F_Semantic_Searcher.py
+│   ├── 📁 security
+│   │   ├── 🐍 F_Encrypter.py
+│   │   ├── 🐍 F_anonymizer.py
+│   │   ├── 🐍 F_prompt_injection.py
+│   │   └── 🐍 __init__.py
 │   └── 🐍 __init__.py
 ├── ⚙️ .gitignore
 ├── 📝 README.md
+├── 📄 env_template
 ├── 🐍 main.py
 ├── ⚙️ pyproject.toml
 └── 📄 uv.lock
@@ -89,3 +98,10 @@ Para ejecutar el programa principal, descargar el dataset automáticamente y emp
 uv run main.py
 ```
 
+## 6. Ejecución de los Tests
+
+Para ejecutar de manera automática los tests que se realizaron para comprobar el funcionamiento de las técnicas de securización, simplemente lanza:
+
+```bash
+uv run python -m pytest .\test\
+```
